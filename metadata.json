@@ -1,0 +1,6 @@
+{
+  "name": "ESCOLA VIVA PARCEIRO DA ESCOLA",
+  "description": "Aplicativo de acompanhamento e registro de manutenções - Escola Viva Parceiro da Escola - Estado do Paraná, NRE Maringá",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
