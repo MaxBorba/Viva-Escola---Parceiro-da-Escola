@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { UserSession, MaintenanceRecord, ResolutionData, ExtraWork } from './types';
+import { UserSession, MaintenanceRecord, ResolutionData, ExtraWork, AccessLog, MasterNodeStatus } from './types';
 import { 
   getRecords, 
   addRecord, 
@@ -16,6 +16,7 @@ import {
   getExtraWorks,
   addExtraWork,
   deleteExtraWork,
+  getAccessLogs,
   fetchServerSync 
 } from './utils/storage';
 import LandingHero from './components/LandingHero';
@@ -29,6 +30,8 @@ export default function App() {
   const [session, setSession] = useState<UserSession | null>(null);
   const [records, setRecords] = useState<MaintenanceRecord[]>(() => getRecords());
   const [extraWorks, setExtraWorks] = useState<ExtraWork[]>(() => getExtraWorks());
+  const [accessLogs, setAccessLogs] = useState<AccessLog[]>(() => getAccessLogs());
+  const [masterNodeInfo, setMasterNodeInfo] = useState<MasterNodeStatus | null>(null);
 
   // Initial load and periodic server sync for cross-device updates (Android, Safari, Web)
   useEffect(() => {
@@ -39,6 +42,8 @@ export default function App() {
       if (synced && isMounted) {
         setRecords(synced.records);
         setExtraWorks(synced.extraWorks);
+        if (synced.accessLogs) setAccessLogs(synced.accessLogs);
+        if (synced.masterNode) setMasterNodeInfo(synced.masterNode);
       }
     };
 
@@ -159,6 +164,8 @@ export default function App() {
       <ArticuladorView
         records={records}
         extraWorks={extraWorks}
+        accessLogs={accessLogs}
+        masterNodeInfo={masterNodeInfo}
         onAddRecord={handleAddRecord}
         onDeleteRecord={handleDeleteRecord}
         onClearTestRecords={handleClearTestRecords}

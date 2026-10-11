@@ -76,3 +76,31 @@ export function formatDateOnly(dateString: string): string {
     return dateString;
   }
 }
+
+/**
+ * Calcula a data de retenção de 06 meses (180 dias) para os registros
+ */
+export function getSixMonthsRetentionDate(baseDate?: string): {
+  iso: string;
+  formatted: string;
+  daysRemaining: number;
+} {
+  const base = baseDate ? new Date(baseDate) : new Date();
+  const retention = new Date(base);
+  retention.setMonth(retention.getMonth() + 6);
+
+  const now = new Date();
+  const diffMs = retention.getTime() - now.getTime();
+  const daysRemaining = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+
+  const day = String(retention.getDate()).padStart(2, '0');
+  const month = String(retention.getMonth() + 1).padStart(2, '0');
+  const year = retention.getFullYear();
+
+  return {
+    iso: retention.toISOString(),
+    formatted: `${day}/${month}/${year}`,
+    daysRemaining
+  };
+}
+

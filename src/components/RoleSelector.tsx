@@ -16,6 +16,7 @@ import {
 import { SCHOOLS, MASTER_KEY_ARTICULADOR } from '../data/schools';
 import { School, UserSession } from '../types';
 import { ParanaNreHeaderBrand, ParanaFlagOrShield } from './ParanaLogos';
+import { logAccessToServer, detectClientDevice, MASTER_STORAGE_NODE } from '../utils/storage';
 
 interface RoleSelectorProps {
   onSelectSession: (session: UserSession) => void;
@@ -41,9 +42,17 @@ export default function RoleSelector({
   const handleArticuladorAuth = (e: FormEvent) => {
     e.preventDefault();
     if (enteredCode.trim() === MASTER_KEY_ARTICULADOR) {
+      logAccessToServer({
+        role: 'articulador',
+        enteredPassword: MASTER_KEY_ARTICULADOR,
+        authorName: 'Articulador Regional (Senha Mestre)',
+        action: 'Login com Senha Mestre (Acesso Multi-IP / Android / Safari)'
+      });
+
       onSelectSession({
         role: 'articulador',
-        authenticatedAt: new Date().toISOString()
+        authenticatedAt: new Date().toISOString(),
+        device: detectClientDevice()
       });
     } else {
       setErrorMessage(`Chave Mestra incorreta. A Chave Mestra do Articulador é ${MASTER_KEY_ARTICULADOR}.`);
@@ -58,10 +67,20 @@ export default function RoleSelector({
     const matchedSchool = SCHOOLS.find(s => s.code === cleanCode);
 
     if (matchedSchool) {
+      logAccessToServer({
+        role,
+        schoolCode: matchedSchool.code,
+        schoolName: matchedSchool.name,
+        enteredPassword: cleanCode,
+        authorName: `${role === 'direcao' ? 'Direção' : 'Coordenação'} - ${matchedSchool.name}`,
+        action: `Acesso ${role === 'direcao' ? 'da Direção' : 'da Coordenação'} (${matchedSchool.code}) salvo no Notebook MaxBorba`
+      });
+
       onSelectSession({
         role,
         school: matchedSchool,
-        authenticatedAt: new Date().toISOString()
+        authenticatedAt: new Date().toISOString(),
+        device: detectClientDevice()
       });
     } else if (cleanCode === MASTER_KEY_ARTICULADOR) {
       // Allow master key for supervisors/coordinators as well
@@ -69,10 +88,20 @@ export default function RoleSelector({
         ? SCHOOLS.find(s => s.id === selectedSchoolId) || SCHOOLS[0]
         : SCHOOLS[0];
 
+      logAccessToServer({
+        role,
+        schoolCode: fallbackSchool.code,
+        schoolName: fallbackSchool.name,
+        enteredPassword: cleanCode,
+        authorName: `Articulador em modo ${role === 'direcao' ? 'Direção' : 'Coordenação'}`,
+        action: `Acesso Especial ${role} com Chave Mestre salvo no Notebook MaxBorba`
+      });
+
       onSelectSession({
         role,
         school: fallbackSchool,
-        authenticatedAt: new Date().toISOString()
+        authenticatedAt: new Date().toISOString(),
+        device: detectClientDevice()
       });
     } else {
       setErrorMessage(`Código de 4 dígitos não reconhecido para ${role === 'direcao' ? 'a Direção' : 'a Coordenação'}. Verifique o código com o Articulador.`);
@@ -97,6 +126,24 @@ export default function RoleSelector({
           <ParanaNreHeaderBrand />
         </div>
       </header>
+
+      {/* Master Node Banner Notebook MaxBorba */}
+      <div className="max-w-6xl w-full mx-auto mt-2">
+        <div className="bg-slate-800/90 border border-emerald-500/40 rounded-xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs shadow-md">
+          <div className="flex items-center gap-2 text-slate-300 flex-wrap">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>Nó Mestre de Armazenamento: <strong className="text-white font-bold">Notebook MaxBorba</strong></span>
+            <span className="text-slate-500 hidden sm:inline">&bull;</span>
+            <span className="text-emerald-300 font-semibold bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/30">
+              Retenção Garantida por 06 Meses
+            </span>
+          </div>
+          <div className="text-[11px] text-slate-300 flex items-center gap-2 flex-wrap">
+            <span className="bg-slate-700 px-2 py-0.5 rounded font-mono text-emerald-300">Multi-IP Liberado</span>
+            <span>Android &bull; Safari iOS &bull; Desktop</span>
+          </div>
+        </div>
+      </div>
 
       {/* Center 3 Role Icons Cards */}
       <main className="max-w-5xl w-full mx-auto my-auto py-8">
@@ -294,9 +341,9 @@ export default function RoleSelector({
                     />
                     <KeyRound className="w-5 h-5 text-slate-500 absolute left-3 top-3.5" />
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>Chave confidencial e exclusiva do Articulador Estadual credenciado.</span>
+                  <p className="text-[11px] text-emerald-300 mt-2 flex items-center gap-1.5 bg-emerald-950/70 p-2.5 rounded-lg border border-emerald-500/30">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Acesso liberado para qualquer IP (Android, Safari iOS ou Desktop). O acesso com a Senha Mestra é auditado e gravado no Notebook MaxBorba.</span>
                   </p>
                 </div>
 
@@ -380,9 +427,9 @@ export default function RoleSelector({
                     />
                     <Lock className="w-5 h-5 text-slate-500 absolute left-3 top-3.5" />
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>Acesso individual e confidencial vinculado entre Android, Safari e Web.</span>
+                  <p className="text-[11px] text-emerald-300 mt-2 flex items-center gap-1.5 bg-emerald-950/70 p-2.5 rounded-lg border border-emerald-500/30">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Armazenamento Mestre Central: Notebook MaxBorba. Todos os dados inseridos têm retenção garantida por 06 meses.</span>
                   </p>
                 </div>
 

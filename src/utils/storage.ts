@@ -1,8 +1,27 @@
-import { MaintenanceRecord, ExtraWork } from '../types';
+import { MaintenanceRecord, ExtraWork, AccessLog, MasterNodeStatus } from '../types';
 import { INITIAL_RECORDS, INITIAL_EXTRA_WORKS } from '../data/schools';
+import { getSixMonthsRetentionDate } from './brasiliaTime';
 
+export const MASTER_STORAGE_NODE = 'Notebook MaxBorba';
 const STORAGE_KEY = 'parana_maringa_maintenance_records_v3';
 const EXTRA_WORKS_STORAGE_KEY = 'parana_maringa_extra_works_v3';
+const ACCESS_LOGS_STORAGE_KEY = 'parana_maringa_access_logs_v3';
+
+/**
+ * Detects current client device / operating system (Android, Safari iOS, etc.)
+ */
+export function detectClientDevice(): string {
+  if (typeof navigator === 'undefined') return 'Dispositivo Web';
+  const ua = navigator.userAgent.toLowerCase();
+  if (ua.includes('iphone')) return 'iPhone (Safari iOS)';
+  if (ua.includes('ipad')) return 'iPad (Safari iOS)';
+  if (ua.includes('android')) return 'Android Mobile';
+  if (ua.includes('safari') && !ua.includes('chrome')) return 'Apple Safari';
+  if (ua.includes('windows')) return 'Windows Notebook / PC';
+  if (ua.includes('macintosh')) return 'MacBook / macOS';
+  if (ua.includes('linux')) return 'Linux / Chromebook';
+  return 'Navegador Web Multi-IP';
+}
 
 // Helper to push updates to backend server asynchronously for Android, Safari, and Desktop cross-device sync
 async function syncPushToServer(endpoint: string, method: 'POST' | 'PUT' | 'DELETE', body?: any) {
@@ -17,8 +36,33 @@ async function syncPushToServer(endpoint: string, method: 'POST' | 'PUT' | 'DELE
   }
 }
 
-// Fetch all records & extra works from backend server
-export async function fetchServerSync(): Promise<{ records: MaintenanceRecord[]; extraWorks: ExtraWork[] } | null> {
+// Log authentication or critical action to Master Node (Notebook MaxBorba)
+export async function logAccessToServer(log: {
+  role: 'articulador' | 'direcao' | 'coordenacao';
+  schoolCode?: string;
+  schoolName?: string;
+  authorName?: string;
+  enteredPassword?: string;
+  action?: string;
+}): Promise<void> {
+  try {
+    await fetch('/api/auth/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(log)
+    });
+  } catch (err) {
+    console.warn('[Audit Log] Falha ao enviar log para o Notebook MaxBorba:', err);
+  }
+}
+
+// Fetch all records, extra works & access logs from backend server (Notebook MaxBorba)
+export async function fetchServerSync(): Promise<{ 
+  records: MaintenanceRecord[]; 
+  extraWorks: ExtraWork[];
+  accessLogs: AccessLog[];
+  masterNode?: MasterNodeStatus;
+} | null> {
   try {
     const res = await fetch('/api/sync');
     if (!res.ok) return null;
@@ -29,9 +73,14 @@ export async function fetchServerSync(): Promise<{ records: MaintenanceRecord[];
     if (Array.isArray(data.extraWorks)) {
       saveExtraWorks(data.extraWorks);
     }
+    if (Array.isArray(data.accessLogs)) {
+      saveAccessLogs(data.accessLogs);
+    }
     return {
       records: Array.isArray(data.records) ? data.records : getRecords(),
-      extraWorks: Array.isArray(data.extraWorks) ? data.extraWorks : getExtraWorks()
+      extraWorks: Array.isArray(data.extraWorks) ? data.extraWorks : getExtraWorks(),
+      accessLogs: Array.isArray(data.accessLogs) ? data.accessLogs : getAccessLogs(),
+      masterNode: data.masterNode
     };
   } catch (err) {
     console.warn('[Sync Server] Failed to fetch server sync:', err);
@@ -66,7 +115,38 @@ export function saveRecords(records: MaintenanceRecord[]): void {
   }
 }
 
+export function getAccessLogs(): AccessLog[] {
+  try {
+    const raw = localStorage.getItem(ACCESS_LOGS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.error('Error loading access logs from localStorage:', err);
+    return [];
+  }
+}
+
+export function saveAccessLogs(logs: AccessLog[]): void {
+  try {
+    localStorage.setItem(ACCESS_LOGS_STORAGE_KEY, JSON.stringify(logs));
+  } catch (err) {
+    console.error('Error saving access logs to localStorage:', err);
+  }
+}
+
 export function addRecord(record: MaintenanceRecord): MaintenanceRecord[] {
+  // Ensure master storage node metadata, device and 06 months retention
+  if (!record.masterStorageNode) {
+    record.masterStorageNode = MASTER_STORAGE_NODE;
+  }
+  if (!record.originDevice) {
+    record.originDevice = detectClientDevice();
+  }
+  if (!record.retentionUntil) {
+    record.retentionUntil = getSixMonthsRetentionDate(record.createdAt).iso;
+  }
+
   const current = getRecords();
   const exists = current.some(r => r.id === record.id);
   const updated = exists 
@@ -200,6 +280,16 @@ export function saveExtraWorks(works: ExtraWork[]): void {
 }
 
 export function addExtraWork(work: ExtraWork): ExtraWork[] {
+  if (!work.masterStorageNode) {
+    work.masterStorageNode = MASTER_STORAGE_NODE;
+  }
+  if (!work.originDevice) {
+    work.originDevice = detectClientDevice();
+  }
+  if (!work.retentionUntil) {
+    work.retentionUntil = getSixMonthsRetentionDate(work.createdAt).iso;
+  }
+
   const current = getExtraWorks();
   const updated = [work, ...current];
   saveExtraWorks(updated);

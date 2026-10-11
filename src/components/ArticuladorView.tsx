@@ -27,10 +27,14 @@ import {
   RefreshCw,
   Sparkles,
   Trash2,
-  Trash
+  Trash,
+  HardDrive,
+  Smartphone,
+  Laptop,
+  Activity
 } from 'lucide-react';
 import { SCHOOLS, GOOGLE_SHEETS_URL, MASTER_KEY_ARTICULADOR } from '../data/schools';
-import { MaintenanceRecord, School, MaintenanceCategory, UrgencyLevel, ExtraWork } from '../types';
+import { MaintenanceRecord, School, MaintenanceCategory, UrgencyLevel, ExtraWork, AccessLog, MasterNodeStatus } from '../types';
 import { getBrasiliaCurrentDateTime, formatDateOnly } from '../utils/brasiliaTime';
 import { exportRecordsToCSV, formatRecordsForClipboard, isTestRecord } from '../utils/storage';
 import { generateRecordPDF, generateSchoolReportPDF } from '../utils/pdfGenerator';
@@ -43,10 +47,13 @@ import ExtraWorksSection from './ExtraWorksSection';
 import ExtraWorkFormModal from './ExtraWorkFormModal';
 import DateRangeExportModal from './DateRangeExportModal';
 import MasterPasswordConfirmModal from './MasterPasswordConfirmModal';
+import MasterStorageAuditSection from './MasterStorageAuditSection';
 
 interface ArticuladorViewProps {
   records: MaintenanceRecord[];
   extraWorks: ExtraWork[];
+  accessLogs?: AccessLog[];
+  masterNodeInfo?: MasterNodeStatus | null;
   onAddRecord: (record: MaintenanceRecord) => void;
   onDeleteRecord?: (id: string) => void;
   onClearTestRecords?: () => { updated: MaintenanceRecord[]; deletedCount: number; deletedIds: string[] };
@@ -60,6 +67,8 @@ interface ArticuladorViewProps {
 export default function ArticuladorView({
   records,
   extraWorks,
+  accessLogs = [],
+  masterNodeInfo,
   onAddRecord,
   onDeleteRecord,
   onClearTestRecords,
@@ -506,6 +515,25 @@ export default function ArticuladorView({
             >
               <Sparkles className="w-4 h-4 text-emerald-600" />
               <span>7ª Aba &bull; Trabalhos Extras Concretizados ({extraWorks.length})</span>
+            </button>
+
+            {/* 8ª aba - IP Mestre MaxBorba & Auditoria (06 Meses) */}
+            <button
+              id="tab-btn-8-ip-mestre-maxborba"
+              onClick={() => setActiveTab(8)}
+              className={`shrink-0 inline-flex items-center gap-2 px-4 sm:px-6 py-3.5 border-b-4 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                activeTab === 8
+                  ? 'border-indigo-600 text-indigo-900 bg-indigo-50/80'
+                  : 'border-transparent text-indigo-700 hover:text-indigo-900 hover:bg-indigo-50/30'
+              }`}
+            >
+              <HardDrive className="w-4 h-4 text-indigo-600" />
+              <span>8ª Aba &bull; IP Mestre MaxBorba &amp; Auditoria (06 Meses)</span>
+              {accessLogs.length > 0 && (
+                <span className="bg-indigo-600 text-white font-mono text-[10px] px-1.5 py-0.2 rounded-full">
+                  {accessLogs.length}
+                </span>
+              )}
             </button>
 
           </div>
@@ -1750,6 +1778,21 @@ export default function ArticuladorView({
               userRole="articulador"
               onAddExtraWork={onAddExtraWork}
               onDeleteExtraWork={onDeleteExtraWork}
+            />
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* 8ª ABA – IP MESTRE MAXBORBA & AUDITORIA DE ACESSOS (06 MESES) */}
+        {/* ========================================================================= */}
+        {activeTab === 8 && (
+          <div id="tab-8-content">
+            <MasterStorageAuditSection
+              records={records}
+              extraWorks={extraWorks}
+              accessLogs={accessLogs}
+              masterNodeInfo={masterNodeInfo}
+              onOpenRecordDetail={(rec) => setSelectedRecordForDetail(rec)}
             />
           </div>
         )}

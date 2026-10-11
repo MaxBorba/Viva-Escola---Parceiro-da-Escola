@@ -214,6 +214,26 @@ export default function RecordDetailModal({
             </div>
           </div>
 
+          {/* Master Storage Node (Notebook MaxBorba) & 06 Meses Retention Badge */}
+          <div className="bg-slate-900 text-white rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 text-xs border border-slate-700 shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <div>
+                <span className="text-slate-300">Nó Mestre de Armazenamento: <strong className="text-white font-bold">{record.masterStorageNode || 'Notebook MaxBorba'}</strong></span>
+                {record.originDevice && (
+                  <span className="text-[11px] text-slate-400 block">Dispositivo de Origem: {record.originDevice}</span>
+                )}
+              </div>
+            </div>
+
+            <div className="text-right">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-500/40">
+                <Clock className="w-3 h-3 text-emerald-400" />
+                <span>Guarda Obrigatória: 06 Meses Ativa</span>
+              </span>
+            </div>
+          </div>
+
           {/* Resolution / Devolutiva Section */}
           {record.resolution ? (
             <div className="border border-emerald-200 bg-emerald-50/40 rounded-2xl p-4 sm:p-5">

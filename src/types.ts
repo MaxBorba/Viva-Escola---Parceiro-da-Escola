@@ -46,6 +46,10 @@ export interface ExtraWork {
   observations?: string;
   driveUrl: string;
   createdAt: string; // ISO string
+  masterStorageNode?: string; // "Notebook MaxBorba"
+  originIp?: string;
+  originDevice?: string;
+  retentionUntil?: string; // ISO (6 meses de guarda garantida)
 }
 
 export interface ResolutionData {
@@ -76,10 +80,48 @@ export interface MaintenanceRecord {
   status: MaintenanceStatus;
   driveUrl: string;
   resolution?: ResolutionData;
+  masterStorageNode?: string; // "Notebook MaxBorba"
+  originIp?: string;
+  originDevice?: string;
+  retentionUntil?: string; // ISO (6 meses de guarda garantida)
+}
+
+export interface AccessLog {
+  id: string;
+  role: RecordRole;
+  schoolCode?: string;
+  schoolName?: string;
+  authorName: string;
+  isMasterKey: boolean;
+  ip: string;
+  device: string;
+  userAgent?: string;
+  action: string;
+  targetId?: string;
+  timestamp: string; // ISO
+  formattedDateTimeBrasilia: string;
+  masterStorageNode: string; // "Notebook MaxBorba"
+  retentionUntil: string; // ISO (6 meses)
+}
+
+export interface MasterNodeStatus {
+  nodeName: string; // "Notebook MaxBorba"
+  ip: string;
+  status: string;
+  retentionPolicy: string; // "06 Meses (180 dias de guarda oficial)"
+  authorizedRoles: string;
+  authorizedSchoolCodes: string[];
+  totalRecordsStored: number;
+  totalExtraWorks: number;
+  totalAccessLogs: number;
+  lastSyncAt: string;
 }
 
 export interface UserSession {
   role: 'articulador' | 'direcao' | 'coordenacao';
   school?: School;
   authenticatedAt: string;
+  clientIp?: string;
+  device?: string;
 }
+
