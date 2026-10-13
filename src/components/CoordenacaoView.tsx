@@ -32,6 +32,7 @@ import ExtraWorksSection from './ExtraWorksSection';
 import ExtraWorkFormModal from './ExtraWorkFormModal';
 import DateRangeExportModal from './DateRangeExportModal';
 import CoordenacaoNotificationsModal from './CoordenacaoNotificationsModal';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface CoordenacaoViewProps {
   school: School;
@@ -184,6 +185,8 @@ export default function CoordenacaoView({
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            <PWAInstallButton />
+
             {/* Botão de Notificações Recebidas */}
             <button
               id="coordenacao-notifications-btn"

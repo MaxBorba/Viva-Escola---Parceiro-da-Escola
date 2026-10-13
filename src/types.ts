@@ -47,9 +47,11 @@ export interface ExtraWork {
   driveUrl: string;
   createdAt: string; // ISO string
   masterStorageNode?: string; // "Notebook MaxBorba"
+  officialPhoneRepository?: string; // "998299505"
+  officialMasterIpId?: string; // "835E8FB-7F16-4C93-B228-3B73FAE5FF24"
   originIp?: string;
   originDevice?: string;
-  retentionUntil?: string; // ISO (6 meses de guarda garantida)
+  retentionUntil?: string; // ISO (6 meses de guarda garantida ou até exclusão)
 }
 
 export interface ResolutionData {
@@ -81,9 +83,11 @@ export interface MaintenanceRecord {
   driveUrl: string;
   resolution?: ResolutionData;
   masterStorageNode?: string; // "Notebook MaxBorba"
+  officialPhoneRepository?: string; // "998299505"
+  officialMasterIpId?: string; // "835E8FB-7F16-4C93-B228-3B73FAE5FF24"
   originIp?: string;
   originDevice?: string;
-  retentionUntil?: string; // ISO (6 meses de guarda garantida)
+  retentionUntil?: string; // ISO (6 meses de guarda garantida ou até exclusão)
 }
 
 export interface AccessLog {
@@ -101,14 +105,19 @@ export interface AccessLog {
   timestamp: string; // ISO
   formattedDateTimeBrasilia: string;
   masterStorageNode: string; // "Notebook MaxBorba"
-  retentionUntil: string; // ISO (6 meses)
+  officialPhoneRepository?: string; // "998299505"
+  officialMasterIpId?: string; // "835E8FB-7F16-4C93-B228-3B73FAE5FF24"
+  retentionUntil: string; // ISO (6 meses ou até exclusão)
 }
 
 export interface MasterNodeStatus {
   nodeName: string; // "Notebook MaxBorba"
-  ip: string;
+  officialPhone?: string; // "998299505"
+  officialMasterIpId?: string; // "835E8FB-7F16-4C93-B228-3B73FAE5FF24"
+  ip?: string;
   status: string;
-  retentionPolicy: string; // "06 Meses (180 dias de guarda oficial)"
+  retentionPolicy: string; // "06 Meses (180 dias) ou até exclusão voluntária"
+  retentionRule?: string; // "Ficam registrados até a exclusão ou após 6 meses de salvamento"
   authorizedRoles: string;
   authorizedSchoolCodes: string[];
   totalRecordsStored: number;

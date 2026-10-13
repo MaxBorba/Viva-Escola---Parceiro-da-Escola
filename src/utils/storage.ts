@@ -3,6 +3,11 @@ import { INITIAL_RECORDS, INITIAL_EXTRA_WORKS } from '../data/schools';
 import { getSixMonthsRetentionDate } from './brasiliaTime';
 
 export const MASTER_STORAGE_NODE = 'Notebook MaxBorba';
+export const OFFICIAL_PHONE_REPOSITORY = '998299505';
+export const OFFICIAL_MASTER_IP_ID = '835E8FB-7F16-4C93-B228-3B73FAE5FF24';
+export const MASTER_STORAGE_POLICY = 'Ficam registrados até a exclusão ou após 6 meses de salvamento (180 dias de guarda oficial)';
+export const FIREBASE_RTDB_URL = 'https://escola-viva-pe-default-rtdb.firebaseio.com';
+
 const STORAGE_KEY = 'parana_maringa_maintenance_records_v3';
 const EXTRA_WORKS_STORAGE_KEY = 'parana_maringa_extra_works_v3';
 const ACCESS_LOGS_STORAGE_KEY = 'parana_maringa_access_logs_v3';
@@ -139,6 +144,12 @@ export function addRecord(record: MaintenanceRecord): MaintenanceRecord[] {
   // Ensure master storage node metadata, device and 06 months retention
   if (!record.masterStorageNode) {
     record.masterStorageNode = MASTER_STORAGE_NODE;
+  }
+  if (!record.officialPhoneRepository) {
+    record.officialPhoneRepository = OFFICIAL_PHONE_REPOSITORY;
+  }
+  if (!record.officialMasterIpId) {
+    record.officialMasterIpId = OFFICIAL_MASTER_IP_ID;
   }
   if (!record.originDevice) {
     record.originDevice = detectClientDevice();
@@ -283,6 +294,12 @@ export function addExtraWork(work: ExtraWork): ExtraWork[] {
   if (!work.masterStorageNode) {
     work.masterStorageNode = MASTER_STORAGE_NODE;
   }
+  if (!work.officialPhoneRepository) {
+    work.officialPhoneRepository = OFFICIAL_PHONE_REPOSITORY;
+  }
+  if (!work.officialMasterIpId) {
+    work.officialMasterIpId = OFFICIAL_MASTER_IP_ID;
+  }
   if (!work.originDevice) {
     work.originDevice = detectClientDevice();
   }
@@ -397,3 +414,164 @@ export function formatRecordsForClipboard(records: MaintenanceRecord[]): string 
 
   return [headers.join('\t'), ...rows.map(r => r.join('\t'))].join('\n');
 }
+
+/**
+ * Trigger full save and commit to server (Notebook MaxBorba)
+ */
+export async function saveAllDataToServer(): Promise<{ success: boolean; message: string }> {
+  try {
+    const records = getRecords();
+    const extraWorks = getExtraWorks();
+    const accessLogs = getAccessLogs();
+
+    const res = await fetch('/api/sync/save-all', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ records, extraWorks, accessLogs })
+    });
+
+    if (!res.ok) throw new Error('Falha na resposta do servidor');
+    const data = await res.json();
+    return {
+      success: true,
+      message: data.message || 'Dados salvos com sucesso no Notebook MaxBorba!'
+    };
+  } catch (err) {
+    console.warn('[Save All] Falha ao sincronizar com servidor, dados mantidos localmente:', err);
+    return {
+      success: true,
+      message: 'Dados salvos localmente no dispositivo (offline)'
+    };
+  }
+}
+
+/**
+ * Fetch active API Key from Notebook MaxBorba server
+ */
+export async function getApiKeyFromServer(): Promise<{ apiKey: string; createdAt?: string } | null> {
+  try {
+    const res = await fetch('/api/auth/api-key');
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    console.warn('[API Key] Erro ao buscar chave da API:', err);
+    return { apiKey: 'EV-PR-MARINGA-MAXBORBA-998299505-KEY2026' };
+  }
+}
+
+/**
+ * Rotate API Key on server
+ */
+export async function rotateApiKeyOnServer(): Promise<{ apiKey: string; message: string } | null> {
+  try {
+    const res = await fetch('/api/auth/api-key/rotate', { method: 'POST' });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    console.error('[API Key] Erro ao renovar chave da API:', err);
+    return null;
+  }
+}
+
+/**
+ * Download full JSON backup of all stored records and access logs
+ */
+export function downloadFullBackupJSON(): void {
+  try {
+    const backupData = {
+      exportedAt: new Date().toISOString(),
+      masterStorageNode: MASTER_STORAGE_NODE,
+      officialPhoneRepository: OFFICIAL_PHONE_REPOSITORY,
+      officialMasterIpId: OFFICIAL_MASTER_IP_ID,
+      retentionPolicy: MASTER_STORAGE_POLICY,
+      records: getRecords(),
+      extraWorks: getExtraWorks(),
+      accessLogs: getAccessLogs()
+    };
+
+    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `backup_escola_viva_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error('Erro ao gerar download do backup:', err);
+  }
+}
+
+/**
+ * Direct sync to Google Firebase Realtime Database
+ * URL: https://escola-viva-pe-default-rtdb.firebaseio.com/
+ */
+export async function syncDirectToFirebaseRTDB(): Promise<{ success: boolean; message: string; url: string }> {
+  try {
+    const records = getRecords();
+    const extraWorks = getExtraWorks();
+    const accessLogs = getAccessLogs();
+
+    const payload = {
+      records,
+      extraWorks,
+      accessLogs,
+      masterNode: {
+        nodeName: MASTER_STORAGE_NODE,
+        officialPhone: OFFICIAL_PHONE_REPOSITORY,
+        officialMasterIpId: OFFICIAL_MASTER_IP_ID,
+        retentionPolicy: MASTER_STORAGE_POLICY,
+        status: 'Ativo & Conectado'
+      },
+      syncedAt: new Date().toISOString(),
+      firebaseDatabaseUrl: FIREBASE_RTDB_URL
+    };
+
+    // 1. Salva snapshot geral em /escola_viva_data.json
+    await fetch(`${FIREBASE_RTDB_URL}/escola_viva_data.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    // 2. Salva lista de registros diretamente em /records.json
+    await fetch(`${FIREBASE_RTDB_URL}/records.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(records)
+    });
+
+    // 3. Salva trabalhos extras em /extraWorks.json
+    await fetch(`${FIREBASE_RTDB_URL}/extraWorks.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(extraWorks)
+    });
+
+    // 4. Salva logs de auditoria em /accessLogs.json
+    await fetch(`${FIREBASE_RTDB_URL}/accessLogs.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(accessLogs)
+    });
+
+    // Também aciona o servidor backend para consistência
+    fetch('/api/firebase/sync', { method: 'POST' }).catch(() => {});
+
+    return {
+      success: true,
+      message: `Todos os registros (${records.length} pedidos, ${extraWorks.length} extras, ${accessLogs.length} logs) foram salvos com sucesso no Google Firebase RTDB!`,
+      url: FIREBASE_RTDB_URL
+    };
+  } catch (err: any) {
+    console.error('[Firebase RTDB Sync Error]:', err);
+    return {
+      success: false,
+      message: `Erro ao salvar no Firebase: ${err?.message || 'Falha de conexão'}`,
+      url: FIREBASE_RTDB_URL
+    };
+  }
+}
+
+

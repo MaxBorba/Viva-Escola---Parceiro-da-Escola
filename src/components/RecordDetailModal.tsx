@@ -214,23 +214,30 @@ export default function RecordDetailModal({
             </div>
           </div>
 
-          {/* Master Storage Node (Notebook MaxBorba) & 06 Meses Retention Badge */}
-          <div className="bg-slate-900 text-white rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 text-xs border border-slate-700 shadow-xs">
-            <div className="flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <div>
-                <span className="text-slate-300">Nó Mestre de Armazenamento: <strong className="text-white font-bold">{record.masterStorageNode || 'Notebook MaxBorba'}</strong></span>
-                {record.originDevice && (
-                  <span className="text-[11px] text-slate-400 block">Dispositivo de Origem: {record.originDevice}</span>
-                )}
+          {/* Repositórios Oficiais (Notebook MaxBorba | Celular 998299505 | IP 835E8FB-7F16-4C93-B228-3B73FAE5FF24) */}
+          <div className="bg-slate-900 text-white rounded-2xl p-4 space-y-2.5 text-xs border border-slate-700 shadow-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <div>
+                  <span className="text-slate-300">Repositores Oficiais: <strong className="text-white font-bold">{record.masterStorageNode || 'Notebook MaxBorba'}</strong> &bull; Celular <strong className="text-emerald-400 font-mono">{record.officialPhoneRepository || '998299505'}</strong></span>
+                  {record.originDevice && (
+                    <span className="text-[11px] text-slate-400 block">Enviado via: {record.originDevice}</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="text-right">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-500/40">
+                  <Clock className="w-3 h-3 text-emerald-400" />
+                  <span>Salvo até exclusão ou após 6 meses ({record.retentionUntil ? new Date(record.retentionUntil).toLocaleDateString('pt-BR') : '180 dias'})</span>
+                </span>
               </div>
             </div>
 
-            <div className="text-right">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-500/40">
-                <Clock className="w-3 h-3 text-emerald-400" />
-                <span>Guarda Obrigatória: 06 Meses Ativa</span>
-              </span>
+            <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+              <span>IP Repositório: <strong className="text-blue-300">{record.officialMasterIpId || '835E8FB-7F16-4C93-B228-3B73FAE5FF24'}</strong></span>
+              <span className="text-emerald-400 font-sans">Multi-IP Android &bull; Safari</span>
             </div>
           </div>
 

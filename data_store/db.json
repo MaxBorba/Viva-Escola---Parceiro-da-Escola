@@ -1,5 +1,83 @@
 {
   "records": [],
   "extraWorks": [],
-  "updatedAt": "2026-10-09T22:51:56.010Z"
+  "updatedAt": "2026-10-13T23:28:57.853Z",
+  "accessLogs": [
+    {
+      "id": "log-1791934137852-j339",
+      "timestamp": "2026-10-13T23:28:57.852Z",
+      "formattedDateTimeBrasilia": "13/10/2026, 20:28:57",
+      "masterStorageNode": "Notebook MaxBorba",
+      "officialPhoneRepository": "998299505",
+      "officialMasterIpId": "835E8FB-7F16-4C93-B228-3B73FAE5FF24",
+      "retentionUntil": "2027-04-13T23:28:57.853Z",
+      "retentionRule": "Salvo até exclusão ou 6 meses",
+      "role": "articulador",
+      "schoolCode": "3536",
+      "schoolName": "CE ADAILE M LEITE",
+      "authorName": "Articulador Regional (Senha Mestre 192026)",
+      "isMasterKey": true,
+      "ip": "127.0.0.1",
+      "device": "Navegador Web Multi-IP",
+      "action": "Exclusão de Ação / Registro #test-rec-001 realizada com Senha Mestre",
+      "targetId": "test-rec-001"
+    },
+    {
+      "id": "log-1791934130681-irwq",
+      "timestamp": "2026-10-13T23:28:50.681Z",
+      "formattedDateTimeBrasilia": "13/10/2026, 20:28:50",
+      "masterStorageNode": "Notebook MaxBorba",
+      "officialPhoneRepository": "998299505",
+      "officialMasterIpId": "835E8FB-7F16-4C93-B228-3B73FAE5FF24",
+      "retentionUntil": "2027-04-13T23:28:50.682Z",
+      "retentionRule": "Salvo até exclusão ou 6 meses",
+      "role": "articulador",
+      "schoolCode": "3536",
+      "schoolName": "CE ADAILE M LEITE",
+      "authorName": "Articulador Regional",
+      "isMasterKey": true,
+      "ip": "127.0.0.1",
+      "device": "Navegador Web Multi-IP",
+      "action": "Cadastro de Pedido #test-rec-001: \"Verificação preventiva de telhas e calhas\" (Retenção 06 Meses)",
+      "targetId": "test-rec-001"
+    },
+    {
+      "id": "log-1791934121531-lnlu",
+      "timestamp": "2026-10-13T23:28:41.531Z",
+      "formattedDateTimeBrasilia": "13/10/2026, 20:28:41",
+      "masterStorageNode": "Notebook MaxBorba",
+      "officialPhoneRepository": "998299505",
+      "officialMasterIpId": "835E8FB-7F16-4C93-B228-3B73FAE5FF24",
+      "retentionUntil": "2027-04-13T23:28:41.532Z",
+      "retentionRule": "Salvo até exclusão ou 6 meses",
+      "role": "articulador",
+      "authorName": "Sincronizador Firebase RTDB",
+      "action": "Sincronização integral realizada com a Nuvem Google Firebase (https://escola-viva-pe-default-rtdb.firebaseio.com)"
+    }
+  ],
+  "apiKey": "EV-PR-MARINGA-MAXBORBA-998299505-KEY2026",
+  "apiKeyCreatedAt": "2026-10-13T23:28:41.153Z",
+  "masterNode": {
+    "nodeName": "Notebook MaxBorba",
+    "officialPhone": "998299505",
+    "officialMasterIpId": "835E8FB-7F16-4C93-B228-3B73FAE5FF24",
+    "role": "Repositório Oficial Central de Armazenamento e Auditoria",
+    "retentionPolicy": "Ficam registrados até a exclusão ou após 6 meses de salvamento (180 dias de guarda oficial)",
+    "retentionRule": "Ficam registrados até a exclusão ou após 6 meses de salvamento",
+    "authorizedSchoolPasswords": [
+      "3536",
+      "3706",
+      "3714",
+      "3927",
+      "4125",
+      "4630",
+      "4834",
+      "5113",
+      "8517",
+      "5237"
+    ],
+    "masterKey": "192026",
+    "crossPlatformAuthorization": "Liberado para qualquer IP, celular Android ou Safari iOS para registrar e excluir",
+    "status": "Ativo & Conectado"
+  }
 }

@@ -11,11 +11,14 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // ==========================================
-// MASTER STORAGE NODE CONFIGURATION
-// Notebook MaxBorba - Central Storage & Audit
+// MASTER STORAGE NODE & REPOSITÓRIOS OFICIAIS
+// Notebook MaxBorba | Celular: 998299505 | IP: 835E8FB-7F16-4C93-B228-3B73FAE5FF24
+// Central Storage & Repositório Oficial de Registros
 // ==========================================
 const MASTER_NODE_NAME = 'Notebook MaxBorba';
-const MASTER_STORAGE_POLICY = '06 Meses (180 dias de guarda obrigatória)';
+const OFFICIAL_PHONE_REPOSITORY = '998299505';
+const OFFICIAL_MASTER_IP_ID = '835E8FB-7F16-4C93-B228-3B73FAE5FF24';
+const MASTER_STORAGE_POLICY = 'Ficam registrados até a exclusão ou após 6 meses de salvamento (180 dias de guarda oficial)';
 const MASTER_KEY_ARTICULADOR = '192026';
 const AUTHORIZED_SCHOOL_PASSWORDS = [
   '3536', // CE ADAILE M LEITE
@@ -29,6 +32,12 @@ const AUTHORIZED_SCHOOL_PASSWORDS = [
   '8517', // CE JARDIM UNIVERSITARIO
   '5237'  // CE OLAVO BILAC
 ];
+
+// Chave de API Oficial Mestre (Notebook MaxBorba - Celular 998299505 - IP 835E8FB-7F16-4C93-B228-3B73FAE5FF24)
+const DEFAULT_API_KEY = 'EV-PR-MARINGA-MAXBORBA-998299505-KEY2026';
+
+// Nuvem Google Firebase Realtime Database
+const FIREBASE_RTDB_URL = 'https://escola-viva-pe-default-rtdb.firebaseio.com';
 
 // Data Persistence Path
 const DATA_DIR = path.join(process.cwd(), 'data_store');
@@ -90,13 +99,18 @@ function loadDB() {
         records: [],
         extraWorks: [],
         accessLogs: [],
+        apiKey: DEFAULT_API_KEY,
+        apiKeyCreatedAt: new Date().toISOString(),
         masterNode: {
           nodeName: MASTER_NODE_NAME,
-          role: 'Nó Mestre de Armazenamento e Auditoria Central',
+          officialPhone: OFFICIAL_PHONE_REPOSITORY,
+          officialMasterIpId: OFFICIAL_MASTER_IP_ID,
+          role: 'Repositório Oficial Central de Armazenamento e Auditoria',
           retentionPolicy: MASTER_STORAGE_POLICY,
+          retentionRule: 'Ficam registrados até a exclusão ou após 6 meses de salvamento',
           authorizedSchoolPasswords: AUTHORIZED_SCHOOL_PASSWORDS,
           masterKey: MASTER_KEY_ARTICULADOR,
-          crossPlatformAuthorization: 'Liberado para qualquer IP, Android ou Safari iOS',
+          crossPlatformAuthorization: 'Liberado para qualquer IP, celular Android ou Safari iOS para registrar e excluir',
           status: 'Ativo & Conectado'
         },
         updatedAt: new Date().toISOString()
@@ -117,17 +131,23 @@ function loadDB() {
     if (!parsed.accessLogs || !Array.isArray(parsed.accessLogs)) {
       parsed.accessLogs = [];
     }
-    if (!parsed.masterNode) {
-      parsed.masterNode = {
-        nodeName: MASTER_NODE_NAME,
-        role: 'Nó Mestre de Armazenamento e Auditoria Central',
-        retentionPolicy: MASTER_STORAGE_POLICY,
-        authorizedSchoolPasswords: AUTHORIZED_SCHOOL_PASSWORDS,
-        masterKey: MASTER_KEY_ARTICULADOR,
-        crossPlatformAuthorization: 'Liberado para qualquer IP, Android ou Safari iOS',
-        status: 'Ativo & Conectado'
-      };
+    if (!parsed.apiKey) {
+      parsed.apiKey = DEFAULT_API_KEY;
+      parsed.apiKeyCreatedAt = new Date().toISOString();
     }
+    
+    parsed.masterNode = {
+      nodeName: MASTER_NODE_NAME,
+      officialPhone: OFFICIAL_PHONE_REPOSITORY,
+      officialMasterIpId: OFFICIAL_MASTER_IP_ID,
+      role: 'Repositório Oficial Central de Armazenamento e Auditoria',
+      retentionPolicy: MASTER_STORAGE_POLICY,
+      retentionRule: 'Ficam registrados até a exclusão ou após 6 meses de salvamento',
+      authorizedSchoolPasswords: AUTHORIZED_SCHOOL_PASSWORDS,
+      masterKey: MASTER_KEY_ARTICULADOR,
+      crossPlatformAuthorization: 'Liberado para qualquer IP, celular Android ou Safari iOS para registrar e excluir',
+      status: 'Ativo & Conectado'
+    };
 
     return parsed;
   } catch (err) {
@@ -136,20 +156,92 @@ function loadDB() {
       records: [], 
       extraWorks: [], 
       accessLogs: [],
-      masterNode: { nodeName: MASTER_NODE_NAME, status: 'Ativo' },
+      masterNode: { 
+        nodeName: MASTER_NODE_NAME, 
+        officialPhone: OFFICIAL_PHONE_REPOSITORY,
+        officialMasterIpId: OFFICIAL_MASTER_IP_ID,
+        status: 'Ativo' 
+      },
       updatedAt: new Date().toISOString() 
     };
   }
 }
 
-// Helper to save db
-function saveDB(data: { records: any[]; extraWorks: any[]; accessLogs?: any[]; masterNode?: any; updatedAt?: string }) {
+// Asynchronous background sync to Google Firebase Realtime Database
+// URL: https://escola-viva-pe-default-rtdb.firebaseio.com/
+async function syncToFirebaseRTDB(data: any): Promise<{ success: boolean; error?: string }> {
+  try {
+    const payload = {
+      records: data.records || [],
+      extraWorks: data.extraWorks || [],
+      accessLogs: data.accessLogs || [],
+      masterNode: data.masterNode || {
+        nodeName: MASTER_NODE_NAME,
+        officialPhone: OFFICIAL_PHONE_REPOSITORY,
+        officialMasterIpId: OFFICIAL_MASTER_IP_ID,
+        retentionPolicy: MASTER_STORAGE_POLICY,
+        status: 'Ativo & Conectado'
+      },
+      apiKey: data.apiKey || DEFAULT_API_KEY,
+      lastSyncTime: new Date().toISOString(),
+      lastSyncBrasilia: getBrasiliaTimeString(),
+      firebaseDatabaseUrl: FIREBASE_RTDB_URL
+    };
+
+    // 1. Salva snapshot completo em /escola_viva_data.json
+    await fetch(`${FIREBASE_RTDB_URL}/escola_viva_data.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    // 2. Salva lista de registros diretamente em /records.json
+    await fetch(`${FIREBASE_RTDB_URL}/records.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data.records || [])
+    });
+
+    // 3. Salva trabalhos extras em /extraWorks.json
+    await fetch(`${FIREBASE_RTDB_URL}/extraWorks.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data.extraWorks || [])
+    });
+
+    // 4. Salva logs de auditoria em /accessLogs.json
+    await fetch(`${FIREBASE_RTDB_URL}/accessLogs.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data.accessLogs || [])
+    });
+
+    // 5. Salva dados do nó mestre em /masterNode.json
+    await fetch(`${FIREBASE_RTDB_URL}/masterNode.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload.masterNode)
+    });
+
+    console.log(`[Firebase RTDB] Registros sincronizados com sucesso em: ${FIREBASE_RTDB_URL}`);
+    return { success: true };
+  } catch (err: any) {
+    console.warn('[Firebase RTDB] Erro ao sincronizar com Google Firebase:', err?.message || err);
+    return { success: false, error: err?.message || String(err) };
+  }
+}
+
+// Helper to save db (Persiste localmente e na nuvem Google Firebase RTDB)
+function saveDB(data: { records: any[]; extraWorks: any[]; accessLogs?: any[]; masterNode?: any; apiKey?: string; updatedAt?: string }) {
   try {
     if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
     }
     data.updatedAt = new Date().toISOString();
     fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    
+    // Sincroniza em segundo plano no Firebase Realtime Database
+    syncToFirebaseRTDB(data);
   } catch (err) {
     console.error('Failed to save DB:', err);
   }
@@ -165,7 +257,10 @@ function addAuditLog(db: any, log: any) {
     timestamp: new Date().toISOString(),
     formattedDateTimeBrasilia: getBrasiliaTimeString(),
     masterStorageNode: MASTER_NODE_NAME,
+    officialPhoneRepository: OFFICIAL_PHONE_REPOSITORY,
+    officialMasterIpId: OFFICIAL_MASTER_IP_ID,
     retentionUntil: calculateRetentionDate(),
+    retentionRule: 'Salvo até exclusão ou 6 meses',
     ...log
   };
   db.accessLogs.unshift(entry);
@@ -190,9 +285,12 @@ app.get('/api/health', (req, res) => {
     serverTime: new Date().toISOString(), 
     brasiliaTime: getBrasiliaTimeString(),
     masterNode: MASTER_NODE_NAME,
+    officialPhoneRepository: OFFICIAL_PHONE_REPOSITORY,
+    officialMasterIpId: OFFICIAL_MASTER_IP_ID,
     retentionPolicy: MASTER_STORAGE_POLICY,
+    retentionRule: 'Ficam registrados até a exclusão ou após 6 meses de salvamento',
     authorizedPasswords: [...AUTHORIZED_SCHOOL_PASSWORDS, MASTER_KEY_ARTICULADOR],
-    crossPlatform: 'Liberado para qualquer IP, Android ou Safari',
+    crossPlatform: 'Liberado para qualquer IP, celular Android ou Safari',
     clientIp: ip,
     region: 'PR - NRE Maringá' 
   });
@@ -206,11 +304,14 @@ app.get('/api/master-status', (req, res) => {
 
   res.json({
     nodeName: MASTER_NODE_NAME,
-    role: 'IP Mestre de Armazenamento e Auditoria Central',
+    officialPhoneRepository: OFFICIAL_PHONE_REPOSITORY,
+    officialMasterIpId: OFFICIAL_MASTER_IP_ID,
+    role: 'Repositório Oficial de Armazenamento e Auditoria Central',
     retentionPolicy: MASTER_STORAGE_POLICY,
+    retentionRule: 'Ficam registrados até a exclusão ou após 6 meses de salvamento',
     authorizedSchoolPasswords: AUTHORIZED_SCHOOL_PASSWORDS,
     masterKeyArticulador: MASTER_KEY_ARTICULADOR,
-    crossPlatformAuthorization: 'Articuladores autorizados em qualquer IP, Android ou Safari para registrar e excluir',
+    crossPlatformAuthorization: 'Articuladores autorizados em qualquer IP, celular Android ou Safari para registrar e excluir',
     totalRecordsStored: db.records.length,
     totalExtraWorksStored: db.extraWorks.length,
     totalAccessLogsStored: db.accessLogs.length,
@@ -257,6 +358,156 @@ app.post('/api/sync', (req, res) => {
     accessLogs: db.accessLogs,
     masterNode: db.masterNode 
   });
+});
+
+// Explicit Save All / Flush endpoint with confirmation
+app.post('/api/sync/save-all', (req, res) => {
+  const { records, extraWorks, accessLogs } = req.body;
+  const db = loadDB();
+  if (Array.isArray(records)) db.records = records;
+  if (Array.isArray(extraWorks)) db.extraWorks = extraWorks;
+  if (Array.isArray(accessLogs)) db.accessLogs = accessLogs;
+  saveDB(db);
+
+  addAuditLog(db, {
+    role: 'articulador',
+    authorName: 'Sistema de Salvamento Central',
+    action: `Salvamento integral confirmado no Notebook MaxBorba (${db.records.length} manutenções, ${db.extraWorks.length} extras, ${db.accessLogs.length} logs)`
+  });
+  saveDB(db);
+
+  res.json({
+    success: true,
+    message: 'Todos os dados foram salvos com sucesso no Notebook MaxBorba',
+    savedAt: new Date().toISOString(),
+    brasiliaTime: getBrasiliaTimeString(),
+    totalRecords: db.records.length,
+    totalExtraWorks: db.extraWorks.length,
+    totalLogs: db.accessLogs.length,
+    retentionPolicy: MASTER_STORAGE_POLICY
+  });
+});
+
+// GET Active API Key
+app.get('/api/auth/api-key', (req, res) => {
+  const db = loadDB();
+  res.json({
+    success: true,
+    apiKey: db.apiKey || DEFAULT_API_KEY,
+    createdAt: db.apiKeyCreatedAt || '2026-01-01T00:00:00.000Z',
+    masterNode: MASTER_NODE_NAME,
+    officialPhoneRepository: OFFICIAL_PHONE_REPOSITORY,
+    officialMasterIpId: OFFICIAL_MASTER_IP_ID,
+    description: 'Chave de API Oficial para sincronização e acesso seguro multi-dispositivo (Android, Safari iOS, Notebook MaxBorba)'
+  });
+});
+
+// POST Rotate / Generate New API Key
+app.post('/api/auth/api-key/rotate', (req, res) => {
+  const db = loadDB();
+  const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const timePart = Date.now().toString(36).toUpperCase();
+  const newKey = `EV-PR-MARINGA-${randomPart}-${timePart}`;
+
+  db.apiKey = newKey;
+  db.apiKeyCreatedAt = new Date().toISOString();
+
+  addAuditLog(db, {
+    role: 'articulador',
+    authorName: 'Articulador Regional (Chave Mestre)',
+    action: `Nova Chave de API gerada: ${newKey.substring(0, 14)}... salva no Notebook MaxBorba`
+  });
+
+  saveDB(db);
+
+  res.json({
+    success: true,
+    apiKey: newKey,
+    createdAt: db.apiKeyCreatedAt,
+    message: 'Nova Chave de API gerada e armazenada com sucesso no Notebook MaxBorba!'
+  });
+});
+
+// GET / POST Full Backup Dump
+app.get('/api/backup', (req, res) => {
+  const db = loadDB();
+  res.setHeader('Content-Disposition', 'attachment; filename=escola_viva_backup_maxborba.json');
+  res.setHeader('Content-Type', 'application/json');
+  res.json({
+    exportedAt: new Date().toISOString(),
+    brasiliaTime: getBrasiliaTimeString(),
+    masterNode: MASTER_NODE_NAME,
+    officialPhoneRepository: OFFICIAL_PHONE_REPOSITORY,
+    officialMasterIpId: OFFICIAL_MASTER_IP_ID,
+    retentionPolicy: MASTER_STORAGE_POLICY,
+    apiKey: db.apiKey,
+    totalRecords: db.records.length,
+    totalExtraWorks: db.extraWorks.length,
+    totalAccessLogs: db.accessLogs.length,
+    records: db.records,
+    extraWorks: db.extraWorks,
+    accessLogs: db.accessLogs
+  });
+});
+
+// GET Firebase RTDB Connection Status
+app.get('/api/firebase/status', async (req, res) => {
+  const db = loadDB();
+  try {
+    const testResp = await fetch(`${FIREBASE_RTDB_URL}/.json`);
+    res.json({
+      success: true,
+      connected: testResp.ok,
+      firebaseUrl: FIREBASE_RTDB_URL,
+      lastSyncTime: db.updatedAt,
+      totalRecordsLocal: db.records.length,
+      totalExtraWorksLocal: db.extraWorks.length,
+      totalLogsLocal: db.accessLogs.length
+    });
+  } catch (err: any) {
+    res.json({
+      success: false,
+      connected: false,
+      firebaseUrl: FIREBASE_RTDB_URL,
+      error: err?.message || String(err),
+      totalRecordsLocal: db.records.length
+    });
+  }
+});
+
+// POST Manual Full Sync with Google Firebase RTDB
+app.post('/api/firebase/sync', async (req, res) => {
+  const db = loadDB();
+  const syncResult = await syncToFirebaseRTDB(db);
+
+  if (syncResult.success) {
+    addAuditLog(db, {
+      role: 'articulador',
+      authorName: 'Sincronizador Firebase RTDB',
+      action: `Sincronização integral realizada com a Nuvem Google Firebase (${FIREBASE_RTDB_URL})`
+    });
+    // Save locally without retriggering loop
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    db.updatedAt = new Date().toISOString();
+    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf-8');
+
+    res.json({
+      success: true,
+      message: `Todos os dados foram salvos com sucesso no link Google Firebase RTDB: ${FIREBASE_RTDB_URL}`,
+      firebaseUrl: FIREBASE_RTDB_URL,
+      totalRecords: db.records.length,
+      totalExtraWorks: db.extraWorks.length,
+      totalLogs: db.accessLogs.length,
+      syncedAt: new Date().toISOString(),
+      brasiliaTime: getBrasiliaTimeString()
+    });
+  } else {
+    res.status(500).json({
+      success: false,
+      message: `Falha ao salvar no Firebase RTDB: ${syncResult.error}`,
+      firebaseUrl: FIREBASE_RTDB_URL
+    });
+  }
 });
 
 // POST Auth / Access Log
@@ -309,6 +560,8 @@ app.post('/api/records', (req, res) => {
 
   // Apply master storage node metadata & 06 months retention
   newRecord.masterStorageNode = MASTER_NODE_NAME;
+  newRecord.officialPhoneRepository = OFFICIAL_PHONE_REPOSITORY;
+  newRecord.officialMasterIpId = OFFICIAL_MASTER_IP_ID;
   newRecord.originIp = clientIp;
   newRecord.originDevice = clientDevice;
   newRecord.retentionUntil = calculateRetentionDate(newRecord.createdAt);
@@ -478,6 +731,8 @@ app.post('/api/extra-works', (req, res) => {
   const clientDevice = getDeviceType(req.headers['user-agent']);
 
   newWork.masterStorageNode = MASTER_NODE_NAME;
+  newWork.officialPhoneRepository = OFFICIAL_PHONE_REPOSITORY;
+  newWork.officialMasterIpId = OFFICIAL_MASTER_IP_ID;
   newWork.originIp = clientIp;
   newWork.originDevice = clientDevice;
   newWork.retentionUntil = calculateRetentionDate(newWork.createdAt);

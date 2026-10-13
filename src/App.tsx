@@ -24,6 +24,7 @@ import RoleSelector from './components/RoleSelector';
 import ArticuladorView from './components/ArticuladorView';
 import DirecaoView from './components/DirecaoView';
 import CoordenacaoView from './components/CoordenacaoView';
+import { OfflineIndicator } from './components/OfflineIndicator';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<'landing' | 'role_selector' | 'portal'>('landing');
@@ -139,76 +140,84 @@ export default function App() {
   const resolvedCount = records.filter(r => r.status === 'realizado').length;
 
   // View Routing
-  if (currentView === 'landing') {
-    return (
-      <LandingHero
-        onStart={handleStartApp}
-        totalRecordsCount={totalRecordsCount}
-        resolvedCount={resolvedCount}
-      />
-    );
-  }
+  const renderContent = () => {
+    if (currentView === 'landing') {
+      return (
+        <LandingHero
+          onStart={handleStartApp}
+          totalRecordsCount={totalRecordsCount}
+          resolvedCount={resolvedCount}
+        />
+      );
+    }
 
-  if (currentView === 'role_selector' || !session) {
+    if (currentView === 'role_selector' || !session) {
+      return (
+        <RoleSelector
+          onSelectSession={handleSelectSession}
+          onBackToLanding={handleBackToLanding}
+        />
+      );
+    }
+
+    // Portal view based on active role
+    if (session.role === 'articulador') {
+      return (
+        <ArticuladorView
+          records={records}
+          extraWorks={extraWorks}
+          accessLogs={accessLogs}
+          masterNodeInfo={masterNodeInfo}
+          onAddRecord={handleAddRecord}
+          onDeleteRecord={handleDeleteRecord}
+          onClearTestRecords={handleClearTestRecords}
+          onDeleteRecordsBySchool={handleDeleteRecordsBySchool}
+          onClearTestRecordsBySchool={handleClearTestRecordsBySchool}
+          onAddExtraWork={handleAddExtraWork}
+          onDeleteExtraWork={handleDeleteExtraWork}
+          onLogout={handleLogout}
+        />
+      );
+    }
+
+    if (session.role === 'direcao' && session.school) {
+      return (
+        <DirecaoView
+          school={session.school}
+          records={records}
+          extraWorks={extraWorks}
+          onAddRecord={handleAddRecord}
+          onAddExtraWork={handleAddExtraWork}
+          onLogout={handleLogout}
+        />
+      );
+    }
+
+    if (session.role === 'coordenacao' && session.school) {
+      return (
+        <CoordenacaoView
+          school={session.school}
+          records={records}
+          extraWorks={extraWorks}
+          onUpdateResolution={handleUpdateResolution}
+          onAddExtraWork={handleAddExtraWork}
+          onLogout={handleLogout}
+        />
+      );
+    }
+
     return (
       <RoleSelector
         onSelectSession={handleSelectSession}
         onBackToLanding={handleBackToLanding}
       />
     );
-  }
+  };
 
-  // Portal view based on active role
-  if (session.role === 'articulador') {
-    return (
-      <ArticuladorView
-        records={records}
-        extraWorks={extraWorks}
-        accessLogs={accessLogs}
-        masterNodeInfo={masterNodeInfo}
-        onAddRecord={handleAddRecord}
-        onDeleteRecord={handleDeleteRecord}
-        onClearTestRecords={handleClearTestRecords}
-        onDeleteRecordsBySchool={handleDeleteRecordsBySchool}
-        onClearTestRecordsBySchool={handleClearTestRecordsBySchool}
-        onAddExtraWork={handleAddExtraWork}
-        onDeleteExtraWork={handleDeleteExtraWork}
-        onLogout={handleLogout}
-      />
-    );
-  }
-
-  if (session.role === 'direcao' && session.school) {
-    return (
-      <DirecaoView
-        school={session.school}
-        records={records}
-        extraWorks={extraWorks}
-        onAddRecord={handleAddRecord}
-        onAddExtraWork={handleAddExtraWork}
-        onLogout={handleLogout}
-      />
-    );
-  }
-
-  if (session.role === 'coordenacao' && session.school) {
-    return (
-      <CoordenacaoView
-        school={session.school}
-        records={records}
-        extraWorks={extraWorks}
-        onUpdateResolution={handleUpdateResolution}
-        onAddExtraWork={handleAddExtraWork}
-        onLogout={handleLogout}
-      />
-    );
-  }
-
-  // Fallback
   return (
-    <RoleSelector
-      onSelectSession={handleSelectSession}
-      onBackToLanding={handleBackToLanding}
-    />
+    <>
+      {renderContent()}
+      <OfflineIndicator />
+    </>
   );
 }

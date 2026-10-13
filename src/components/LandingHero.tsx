@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { SCHOOLS } from '../data/schools';
 import { ParanaNreHeaderBrand, ParanaFlagOrShield } from './ParanaLogos';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface LandingHeroProps {
   onStart: () => void;
@@ -37,12 +38,15 @@ export default function LandingHero({
             <ParanaNreHeaderBrand />
           </div>
 
-          {/* Quick Action / Access System */}
-          <div className="flex items-center gap-3">
+          {/* Quick Action / Access System & PWA */}
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <PWAInstallButton />
+
             <div className="bg-emerald-950/70 border border-emerald-500/30 px-3 py-1.5 rounded-full text-xs items-center gap-2 text-emerald-200 hidden md:flex">
               <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
               <span>Rede Estadual Conectada &bull; NRE Maringá</span>
             </div>
+
             <button
               id="header-start-btn"
               onClick={onStart}

@@ -17,6 +17,7 @@ import { SCHOOLS, MASTER_KEY_ARTICULADOR } from '../data/schools';
 import { School, UserSession } from '../types';
 import { ParanaNreHeaderBrand, ParanaFlagOrShield } from './ParanaLogos';
 import { logAccessToServer, detectClientDevice, MASTER_STORAGE_NODE } from '../utils/storage';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface RoleSelectorProps {
   onSelectSession: (session: UserSession) => void;
@@ -123,24 +124,25 @@ export default function RoleSelector({
         </button>
 
         <div className="flex items-center gap-3">
+          <PWAInstallButton />
           <ParanaNreHeaderBrand />
         </div>
       </header>
 
-      {/* Master Node Banner Notebook MaxBorba */}
+      {/* Master Node Banner Notebook MaxBorba & Celular 998299505 & IP 835E8FB-7F16-4C93-B228-3B73FAE5FF24 */}
       <div className="max-w-6xl w-full mx-auto mt-2">
         <div className="bg-slate-800/90 border border-emerald-500/40 rounded-xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs shadow-md">
           <div className="flex items-center gap-2 text-slate-300 flex-wrap">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>Nó Mestre de Armazenamento: <strong className="text-white font-bold">Notebook MaxBorba</strong></span>
+            <span>Repositores Oficiais: <strong className="text-white font-bold">Notebook MaxBorba</strong> &bull; Celular <strong className="text-emerald-300 font-mono">998299505</strong></span>
             <span className="text-slate-500 hidden sm:inline">&bull;</span>
             <span className="text-emerald-300 font-semibold bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/30">
-              Retenção Garantida por 06 Meses
+              Salvo até exclusão ou 06 meses
             </span>
           </div>
           <div className="text-[11px] text-slate-300 flex items-center gap-2 flex-wrap">
-            <span className="bg-slate-700 px-2 py-0.5 rounded font-mono text-emerald-300">Multi-IP Liberado</span>
-            <span>Android &bull; Safari iOS &bull; Desktop</span>
+            <span className="bg-slate-700 px-2 py-0.5 rounded font-mono text-blue-300">IP: 835E8FB-7F16...</span>
+            <span className="text-emerald-400">Android &bull; Safari &bull; Desktop</span>
           </div>
         </div>
       </div>

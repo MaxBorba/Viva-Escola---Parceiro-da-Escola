@@ -48,6 +48,7 @@ import ExtraWorkFormModal from './ExtraWorkFormModal';
 import DateRangeExportModal from './DateRangeExportModal';
 import MasterPasswordConfirmModal from './MasterPasswordConfirmModal';
 import MasterStorageAuditSection from './MasterStorageAuditSection';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface ArticuladorViewProps {
   records: MaintenanceRecord[];
@@ -392,6 +393,8 @@ export default function ArticuladorView({
               Rede Conectada
             </div>
 
+            <PWAInstallButton />
+
             <a
               id="header-official-sheet-link"
               href={GOOGLE_SHEETS_URL}
@@ -517,7 +520,7 @@ export default function ArticuladorView({
               <span>7ª Aba &bull; Trabalhos Extras Concretizados ({extraWorks.length})</span>
             </button>
 
-            {/* 8ª aba - IP Mestre MaxBorba & Auditoria (06 Meses) */}
+            {/* 8ª aba - Repositores Oficiais (Celular 998299505 | IP 835E8FB-7F16-4C93-B228-3B73FAE5FF24) */}
             <button
               id="tab-btn-8-ip-mestre-maxborba"
               onClick={() => setActiveTab(8)}
@@ -528,7 +531,7 @@ export default function ArticuladorView({
               }`}
             >
               <HardDrive className="w-4 h-4 text-indigo-600" />
-              <span>8ª Aba &bull; IP Mestre MaxBorba &amp; Auditoria (06 Meses)</span>
+              <span>8ª Aba &bull; Repositores Oficiais (998299505 &bull; IP Mestre) &amp; Auditoria</span>
               {accessLogs.length > 0 && (
                 <span className="bg-indigo-600 text-white font-mono text-[10px] px-1.5 py-0.2 rounded-full">
                   {accessLogs.length}

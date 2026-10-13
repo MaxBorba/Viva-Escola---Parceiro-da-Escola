@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="50%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#090d16" />
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.5" />
+    </filter>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+
+  <!-- Outer Border Ring -->
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="none" stroke="#334155" stroke-width="6" opacity="0.6" />
+
+  <!-- Central Shield Glow -->
+  <g filter="url(#shadow)">
+    <!-- School & Maintenance Emblem Background -->
+    <path d="M 256 64 L 400 128 C 400 270 330 380 256 424 C 182 380 112 270 112 128 Z" fill="url(#shieldGrad)" stroke="#10b981" stroke-width="8" stroke-linejoin="round" />
+
+    <!-- Inner Shield Accent -->
+    <path d="M 256 84 L 382 140 C 382 258 322 355 256 398 C 190 355 130 258 130 140 Z" fill="none" stroke="#34d399" stroke-width="4" opacity="0.4" />
+  </g>
+
+  <!-- Central Emblem: School & Tools -->
+  <!-- School Building Silhouette in Gold -->
+  <g fill="url(#goldGrad)" transform="translate(186, 150)">
+    <!-- Roof pediment -->
+    <polygon points="70,0 0,40 140,40" />
+    <!-- Pillars -->
+    <rect x="14" y="48" width="16" height="60" rx="3" />
+    <rect x="48" y="48" width="16" height="60" rx="3" />
+    <rect x="76" y="48" width="16" height="60" rx="3" />
+    <rect x="110" y="48" width="16" height="60" rx="3" />
+    <!-- Base -->
+    <rect x="0" y="112" width="140" height="16" rx="4" />
+  </g>
+
+  <!-- Crossed Wrench / Tool Symbol of Preventive Maintenance -->
+  <g fill="#ffffff" filter="url(#shadow)" transform="translate(256, 310)">
+    <!-- Circle badge behind tool -->
+    <circle cx="0" cy="0" r="44" fill="#0f172a" stroke="url(#goldGrad)" stroke-width="6" />
+    <!-- Wrench icon -->
+    <path d="M -16 -16 C -20 -12 -22 -6 -20 0 C -18 6 -12 11 -6 13 L 14 33 C 17 36 22 36 25 33 L 33 25 C 36 22 36 17 33 14 L 13 -6 C 11 -12 6 -18 0 -20 C -6 -22 -12 -20 -16 -16 Z" fill="#38bdf8" />
+    <circle cx="-10" cy="-10" r="5" fill="#0f172a" />
+  </g>
+
+  <!-- Badge Text: PARANÁ - ESCOLA VIVA -->
+  <text x="256" y="468" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="28" fill="#38bdf8" letter-spacing="4">ESCOLA VIVA</text>
+</svg>

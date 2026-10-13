@@ -28,6 +28,7 @@ import CameraCaptureModal from './CameraCaptureModal';
 import RecordDetailModal from './RecordDetailModal';
 import ExtraWorksSection from './ExtraWorksSection';
 import DateRangeExportModal from './DateRangeExportModal';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface DirecaoViewProps {
   school: School;
@@ -167,6 +168,8 @@ export default function DirecaoView({
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            <PWAInstallButton />
+
             {/* Botão: Seleção de Datas dos Laudos / Planilha */}
             <button
               id="direcao-date-range-export-btn"
